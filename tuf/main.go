@@ -13,9 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package config
+package main
 
-type TUFConfig struct {
-	ProjectId string
-	Location  string
+import "github.com/GoogleCloudPlatform/runtimes-common/tuf/server"
+
+func main() {
+	server.GetKmsService()
 }
