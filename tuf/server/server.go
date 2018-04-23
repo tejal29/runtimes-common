@@ -17,33 +17,43 @@ package server
 
 import (
 	"fmt"
-
-	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
+	"io/ioutil"
+	"os"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
-	cloudkms "google.golang.org/api/cloudkms/v1"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/gcs_lib"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms_lib"
 )
 
-func Encrypt(config config.TUFConfig) (*cloudkms.EncryptResponse, error) {
-	ctx := context.Background()
+func UpdateSecrets(config config.TUFConfig, rootKeyFile string, targetKeyFile string, snapshotKeyFile string) error {
+	errorStr := make([]string, 0)
+	if rootKeyFile != "" {
 
-	client, err := google.DefaultClient(ctx, cloudkms.CloudPlatformScope)
+		errorStr := append(errorStr, uploadSecret(rootKeyFile, config).Error())
+	}
+	if targetKeyFile != "" {
+		encyptedRootFileContents, err := kms_lib.Encrypt(config, "")
+		errorStr := append(errorStr, err.Error())
+	}
+	if snapshotKeyFile != "" {
+		encyptedRootFilContents, err := kms_lib.Encrypt(config, "")
+		errorStr := append(errorStr, err.Error())
+	}
+	return fmt.Errorf("Encountered following errors %s", strings.Join(errorStr, "\n"))
+}
+
+func uploadSecret(file string, config config.TUFConfig) error {
+	text, err := ioutil.ReadFile(file)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-	kmsService, err := cloudkms.New(client)
+	encyptedFileContents, err := kms_lib.Encrypt(config, string(text))
+	tmpFile, errWrite := ioutil.TempFile("", "key")
+	defer os.Remove(tmpFile.Name())
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-
-	// The resource name of the key rings.
-	parentName := fmt.Sprintf("projects/%s/locations/%s/keyRings/%s/cryptoKeys/%s",
-		config.ProjectId, config.Location, config.KeyRingId, config.CryptoKeyId)
-
-	//encryptionService := cloudkms.NewProjectsLocationsKeyRingsCryptoKeysService(kmsService)
-	encryptRequest := &cloudkms.EncryptRequest{
-		Plaintext: "this is my secret",
-	}
-	return kmsService.Projects.Locations.KeyRings.CryptoKeys.Encrypt(parentName, encryptRequest).Do()
+	ioutil.WriteFile(tmpFile.Name(), string(encyptedFileContents), os.ModePerm)
+	gcs_lib.Upload(config.GCSProjectId, config.GCSBucketId, t)
 }

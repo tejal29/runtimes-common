@@ -16,8 +16,10 @@ limitations under the License.
 package config
 
 type TUFConfig struct {
-	ProjectId   string
-	Location    string
-	KeyRingId   string
-	CryptoKeyId string
+	GCSProjectId string
+	KMSProjectId string
+	KMSLocation  string
+	KeyRingId    string
+	CryptoKeyId  string
+	GCSBucketId  string
 }

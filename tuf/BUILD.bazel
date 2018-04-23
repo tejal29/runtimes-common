@@ -8,9 +8,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//ctc_lib:go_default_library",
-        "//tuf/config:go_default_library",
-        "//tuf/kms_lib:go_default_library",
-        "//vendor/github.com/spf13/cobra:go_default_library",
+        "//tuf/cmd:go_default_library",
     ],
 )
 

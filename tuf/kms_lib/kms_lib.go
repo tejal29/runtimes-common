@@ -16,6 +16,7 @@ limitations under the License.
 package kms_lib
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -30,43 +31,47 @@ func Encrypt(config config.TUFConfig, text string) (*cloudkms.EncryptResponse, e
 
 	client, err := google.DefaultClient(ctx, cloudkms.CloudPlatformScope)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 	kmsService, err := cloudkms.New(client)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	// The resource name of the key rings.
 	parentName := fmt.Sprintf("projects/%s/locations/%s/keyRings/%s/cryptoKeys/%s",
-		config.ProjectId, config.Location, config.KeyRingId, config.CryptoKeyId)
+		config.KMSProjectId, config.KMSLocation, config.KeyRingId, config.CryptoKeyId)
 
-	//encryptionService := cloudkms.NewProjectsLocationsKeyRingsCryptoKeysService(kmsService)
 	encryptRequest := &cloudkms.EncryptRequest{
-		Plaintext: text,
+		Plaintext: base64.StdEncoding.EncodeToString([]byte(text)),
 	}
 	return kmsService.Projects.Locations.KeyRings.CryptoKeys.Encrypt(parentName, encryptRequest).Do()
 }
 
-func Decrypt(config config.TUFConfig, cipherText string) (*cloudkms.DecryptResponse, error) {
+func Decrypt(config config.TUFConfig, cipherText string) (string, error) {
 	ctx := context.Background()
 
 	client, err := google.DefaultClient(ctx, cloudkms.CloudPlatformScope)
 	if err != nil {
-		fmt.Println(err)
+		return "", err
 	}
 	kmsService, err := cloudkms.New(client)
 	if err != nil {
-		fmt.Println(err)
+		return "", err
 	}
 
 	// The resource name of the key rings.
 	parentName := fmt.Sprintf("projects/%s/locations/%s/keyRings/%s/cryptoKeys/%s",
-		config.ProjectId, config.Location, config.KeyRingId, config.CryptoKeyId)
+		config.KMSProjectId, config.KMSLocation, config.KeyRingId, config.CryptoKeyId)
 
 	//encryptionService := cloudkms.NewProjectsLocationsKeyRingsCryptoKeysService(kmsService)
 	decryptRequest := &cloudkms.DecryptRequest{
 		Ciphertext: cipherText,
 	}
-	return kmsService.Projects.Locations.KeyRings.CryptoKeys.Decrypt(parentName, decryptRequest).Do()
+	decryptResp, err := kmsService.Projects.Locations.KeyRings.CryptoKeys.Decrypt(parentName, decryptRequest).Do()
+	if err != nil {
+		return "", err
+	}
+	bytes, err := base64.StdEncoding.DecodeString(decryptResp.Plaintext)
+	return string(bytes), err
 }
