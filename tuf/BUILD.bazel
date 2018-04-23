@@ -6,7 +6,12 @@ go_library(
     data = ["keys.json"],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf",
     visibility = ["//visibility:private"],
-    deps = ["//tuf/server:go_default_library"],
+    deps = [
+        "//ctc_lib:go_default_library",
+        "//tuf/config:go_default_library",
+        "//tuf/kms_lib:go_default_library",
+        "//vendor/github.com/spf13/cobra:go_default_library",
+    ],
 )
 
 go_binary(

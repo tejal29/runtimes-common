@@ -25,12 +25,9 @@ import (
 	cloudkms "google.golang.org/api/cloudkms/v1"
 )
 
-func GetKmsService() {
+func Encrypt(config config.TUFConfig) (*cloudkms.EncryptResponse, error) {
 	ctx := context.Background()
-	config := config.TUFConfig{
-		ProjectId: "my-encryption-prject",
-		Location:  "global",
-	}
+
 	client, err := google.DefaultClient(ctx, cloudkms.CloudPlatformScope)
 	if err != nil {
 		fmt.Println(err)
@@ -41,16 +38,12 @@ func GetKmsService() {
 	}
 
 	// The resource name of the key rings.
-	parentName := fmt.Sprintf("projects/%s/locations/%s", config.ProjectId, config.Location)
+	parentName := fmt.Sprintf("projects/%s/locations/%s/keyRings/%s/cryptoKeys/%s",
+		config.ProjectId, config.Location, config.KeyRingId, config.CryptoKeyId)
 
-	// Make the RPC call.
-	response, err := kmsService.Projects.Locations.KeyRings.List(parentName).Do()
-	if err != nil {
-		fmt.Println("Failed to list key rings: %v", err)
+	//encryptionService := cloudkms.NewProjectsLocationsKeyRingsCryptoKeysService(kmsService)
+	encryptRequest := &cloudkms.EncryptRequest{
+		Plaintext: "this is my secret",
 	}
-
-	// Print the returned key rings.
-	for _, keyRing := range response.KeyRings {
-		fmt.Printf("KeyRing: %q\n", keyRing.Name)
-	}
+	return kmsService.Projects.Locations.KeyRings.CryptoKeys.Encrypt(parentName, encryptRequest).Do()
 }

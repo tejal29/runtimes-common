@@ -15,8 +15,51 @@ limitations under the License.
 */
 package main
 
-import "github.com/GoogleCloudPlatform/runtimes-common/tuf/server"
+import (
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms_lib"
+	"github.com/spf13/cobra"
+)
+
+// Flags
+var projectId = "my-encryption-prject"
+var keyId = "testkey"
+var keyRingId = "testkeyring"
+var location = "global"
+var text string
+
+// Command
+var RootCommand = &ctc_lib.ContainerToolCommand{
+	ContainerToolCommandBase: &ctc_lib.ContainerToolCommandBase{
+		Command: &cobra.Command{
+			Use: "Demo kms",
+		},
+		Phase:           "test",
+		DefaultTemplate: "{{.}}",
+	},
+	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
+		config := config.TUFConfig{
+			ProjectId:   projectId,
+			KeyRingId:   keyRingId,
+			Location:    location,
+			CryptoKeyId: keyId,
+		}
+		encrypt_resp, err := kms_lib.Encrypt(config, text)
+		ctc_lib.Log.Info(encrypt_resp)
+		ctc_lib.Log.Info(err)
+		if err != nil {
+			return nil, err
+		}
+		decrypt_resp, err1 := kms_lib.Decrypt(config, encrypt_resp.Ciphertext)
+		return decrypt_resp, err1
+	},
+}
 
 func main() {
-	server.GetKmsService()
+	ctc_lib.Execute(RootCommand)
+}
+
+func init() {
+	RootCommand.PersistentFlags().StringVarP(&text, "plain-text", "p", "this is secret", "Text to encrypt using key.")
 }
