@@ -13,11 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package gcs_lib
+package gcsLib
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -27,7 +26,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func Upload(projectId string, r io.Reader, bucket string, name string, public bool) (*storage.ObjectHandle, *storage.ObjectAttrs, error) {
+func Upload(projectId string, bucket string, name string, public bool, r io.Reader) (*storage.ObjectHandle, *storage.ObjectAttrs, error) {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
@@ -68,14 +67,15 @@ func Download(projectId string, bucketId string, objectName string, destPath str
 	}
 
 	bh := client.Bucket(bucketId)
-	rc, err1 := bh.Object(objectName).NewReader(ctx)
-	if err1 != nil {
-		return fmt.Errorf("readFile: unable to open file from bucket %q, file %q: %v", bucketId, objectName, err)
+
+	rc, err := bh.Object(objectName).NewReader(ctx)
+	if err != nil {
+		return err
 	}
 	defer rc.Close()
-	slurp, err2 := ioutil.ReadAll(rc)
-	if err2 != nil {
-		return fmt.Errorf("readFile: unable to read data from bucket %q, file %q: %v", bucketId, objectName, err)
+	slurp, err := ioutil.ReadAll(rc)
+	if err != nil {
+		return err
 	}
 	return ioutil.WriteFile(destPath, slurp, os.ModePerm) // Create a file with 777 mode.
 }

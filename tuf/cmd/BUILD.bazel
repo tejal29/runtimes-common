@@ -14,6 +14,7 @@ go_library(
         "//ctc_lib:go_default_library",
         "//tuf/config:go_default_library",
         "//tuf/kms_lib:go_default_library",
+        "//tuf/server:go_default_library",
         "//vendor/github.com/spf13/cobra:go_default_library",
         "//vendor/github.com/spf13/viper:go_default_library",
     ],

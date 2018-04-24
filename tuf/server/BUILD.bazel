@@ -7,7 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//tuf/config:go_default_library",
-        "//tuf/gcs_lib:go_default_library",
-        "//tuf/kms_lib:go_default_library",
+        "//tuf/gcsLib:go_default_library",
+        "//tuf/kmsLib:go_default_library",
     ],
 )

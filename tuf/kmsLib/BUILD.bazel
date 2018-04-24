@@ -2,8 +2,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["kms_lib.go"],
-    importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/kms_lib",
+    srcs = ["kmsLib.go"],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/kmsLib",
     visibility = ["//visibility:public"],
     deps = [
         "//tuf/config:go_default_library",

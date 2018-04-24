@@ -19,6 +19,7 @@ package cmd
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/server"
 
 	"github.com/spf13/cobra"
 )
@@ -28,7 +29,7 @@ var rootKey = "~/root.json"
 var targetKey = "~/target.json"
 var snapshotKey = "~/snapshot.json"
 
-// Command To upload Secrets to GCS store.
+// Command To upload Secrets to GCS store and Renegerate all the MetaData.
 var UploadSecretsCommand = &ctc_lib.ContainerToolCommand{
 	ContainerToolCommandBase: &ctc_lib.ContainerToolCommandBase{
 		Command: &cobra.Command{
@@ -46,7 +47,8 @@ var UploadSecretsCommand = &ctc_lib.ContainerToolCommand{
 			KMSLocation:  KMSLocation,
 			CryptoKeyId:  KeyId,
 		}
-		return config, nil
+		server.UpdateSecrets(config, rootKey, targetKey, snapshotKey)
+		return nil, nil
 	},
 }
 

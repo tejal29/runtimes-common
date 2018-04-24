@@ -21,39 +21,100 @@ import (
 	"os"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/gcs_lib"
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms_lib"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/gcsLib"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kmsLib"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata/v1"
 )
 
-func UpdateSecrets(config config.TUFConfig, rootKeyFile string, targetKeyFile string, snapshotKeyFile string) error {
-	errorStr := make([]string, 0)
-	if rootKeyFile != "" {
-
-		errorStr := append(errorStr, uploadSecret(rootKeyFile, config).Error())
-	}
-	if targetKeyFile != "" {
-		encyptedRootFileContents, err := kms_lib.Encrypt(config, "")
-		errorStr := append(errorStr, err.Error())
-	}
-	if snapshotKeyFile != "" {
-		encyptedRootFilContents, err := kms_lib.Encrypt(config, "")
-		errorStr := append(errorStr, err.Error())
-	}
-	return fmt.Errorf("Encountered following errors %s", strings.Join(errorStr, "\n"))
+type TUFMetadata struct {
+	RootFile v1.Metadata
+	Target   v1.Metadata
+	Snapshot v1.Metadata
 }
 
-func uploadSecret(file string, config config.TUFConfig) error {
+type KeyPair struct {
+	Public  string
+	Private string
+}
+
+func UpdateSecrets(tufConfig config.TUFConfig, rootKeyFile string, targetKeyFile string, snapshotKeyFile string) error {
+	errorStr := make([]string, 0)
+	oldRootKeyFile := ""
+	if rootKeyFile != "" {
+		// in case of Root Key being updated, we need to first download the old root key and sign the root.json with
+		// old and new key.
+
+		tmpFile, errWrite := ioutil.TempFile("", "root.key.old")
+		defer os.Remove(tmpFile.Name())
+		if errWrite != nil {
+			return errWrite
+		}
+		err := gcsLib.Download(tufConfig.GCSProjectId, tufConfig.GCSBucketId, config.RootSecretFileName, tmpFile.Name())
+		if err != nil && err != storage.ErrObjectNotExist {
+			// The old root file exists but there was an error reading it. This is fatal hence return error
+			return err
+		}
+		oldRootKeyFile = tmpFile.Name()
+		errorStr = append(errorStr, uploadSecret(rootKeyFile, tufConfig, config.RootSecretFileName).Error())
+	}
+	if targetKeyFile != "" {
+		errorStr = append(errorStr, uploadSecret(targetKeyFile, tufConfig, config.TargetSecretFileName).Error())
+	}
+	if snapshotKeyFile != "" {
+		errorStr = append(errorStr, uploadSecret(snapshotKeyFile, tufConfig, config.SnapshotSecretFileName).Error())
+	}
+	if len(errorStr) > 1 {
+		// Exit if there were errors uploading secrets.
+		return fmt.Errorf("Encountered following errors %s", strings.Join(errorStr, "\n"))
+	}
+
+	// Generate all the Metadata.
+	tufMetadata := GenerateMetadata(rootKeyFile, oldRootKeyFile, targetKeyFile, snapshotKeyFile)
+
+	// Write Consistent Snapshots
+	WriteConsistentSnapshot(tufMetadata)
+	return nil
+}
+
+func uploadSecret(file string, tufConfig config.TUFConfig, name string) error {
 	text, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
 	}
-	encyptedFileContents, err := kms_lib.Encrypt(config, string(text))
+	encyptedResponse, err := kmsLib.Encrypt(tufConfig, string(text))
 	tmpFile, errWrite := ioutil.TempFile("", "key")
 	defer os.Remove(tmpFile.Name())
-	if err != nil {
+	if errWrite != nil {
 		return err
 	}
-	ioutil.WriteFile(tmpFile.Name(), string(encyptedFileContents), os.ModePerm)
-	gcs_lib.Upload(config.GCSProjectId, config.GCSBucketId, t)
+	ioutil.WriteFile(tmpFile.Name(), []byte(encyptedResponse.Ciphertext), os.ModePerm)
+	tmpFile.Close()
+	_, _, err = gcsLib.Upload(tufConfig.GCSProjectId, tufConfig.GCSBucketId, name, false, tmpFile)
+	return err
+}
+
+func GenerateMetadata(rootKeyFile string, oldRootKeyFile string, targetKeyFile string, snapshotKeyFile string) *TUFMetadata {
+	// Populate Root.json Signed part
+
+	// Sign with new key and populate the unsigned part
+
+	if oldRootKeyFile != "" {
+		// Sign with old key and add this to unsigned part
+	}
+
+	// Write root.json and <n>/root.json
+	// Push it.
+
+	// Write <n>/target.json
+	//Push it
+
+	// Write <n>/Snapshot.json
+	//Push it
+	return &TUFMetadata{}
+}
+
+func WriteConsistentSnapshot(tufMetadata *TUFMetadata) {
+
 }

@@ -21,5 +21,6 @@ import (
 )
 
 func main() {
+	ctc_lib.ConfigFile = "tuf/demo_config.yml"
 	ctc_lib.Execute(cmd.RootCommand)
 }

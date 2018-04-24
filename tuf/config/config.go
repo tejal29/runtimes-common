@@ -23,3 +23,10 @@ type TUFConfig struct {
 	CryptoKeyId  string
 	GCSBucketId  string
 }
+
+const (
+	RootSecretFileName     = "encrypted-root.key"
+	TargetSecretFileName   = "encrypted-target.key"
+	SnapshotSecretFileName = "encrypted-snapshot.key"
+	TimelineSecretFileName = "encrypted-timeline.key"
+)

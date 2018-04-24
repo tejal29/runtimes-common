@@ -13,24 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-package cmd
+package v1
 
 import (
-	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
-	"github.com/spf13/cobra"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata"
 )
 
-// Command to upload a target file
-var UploadTargetCommand = &ctc_lib.ContainerToolCommand{
-	ContainerToolCommandBase: &ctc_lib.ContainerToolCommandBase{
-		Command: &cobra.Command{
-			Use: "Prototype GCS Update Targets to Google Cloud Storage.",
-		},
-		Phase:           "test",
-		DefaultTemplate: "{{.}}",
-	},
-	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
-		return nil, nil
-	},
+type Metadata struct {
+	*metadata.Metadata
 }
