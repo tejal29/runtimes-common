@@ -42,32 +42,31 @@ const (
 type RoleType string
 
 const (
-	Root      RoleType = "root"
-	Target    RoleType = "target"
-	Snapshot  RoleType = "snapshot"
-	Timestamp RoleType = "timestamp"
+	RootRole      RoleType = "root"
+	TargetRole    RoleType = "target"
+	SnapshotRole  RoleType = "snapshot"
+	TimestampRole RoleType = "timestamp"
 )
 
 type KeyId string
-
-type Metadata struct {
-	Signatures  []Signature
-	Signed      Signed
-	Roles       []Role
-	Version     int
-	SpecVersion int
-}
 
 type Signature struct {
 	KeyId string
 	Sig   string
 }
 
-type Signed struct {
-	Type               RoleType
+type BaseSigned struct {
+	Type        RoleType
+	Expires     time.Time
+	Version     int
+	SpecVersion int
+}
+
+type RootSigned struct {
+	*BaseSigned
 	ConsistentSnapshot bool
-	Expires            time.Time
-	Keys               KeysDef
+	Keys               []KeysDef
+	Roles              []Role
 }
 
 type KeysDef struct {
@@ -82,4 +81,26 @@ type Role struct {
 	Type      RoleType
 	Keyids    []KeyId
 	Threshold int
+}
+
+type SnapshotSigned struct {
+	*BaseSigned
+	Meta SnapshotMeta
+}
+
+type SnapshotMeta struct {
+	Type    RoleType
+	Version int
+}
+
+type TargetSigned struct {
+	*BaseSigned
+	Targets []Target
+}
+
+type Target struct {
+	Filename string
+	Custom   interface{}
+	Hashes   []string
+	Length   int
 }

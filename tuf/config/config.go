@@ -16,12 +16,16 @@ limitations under the License.
 package config
 
 type TUFConfig struct {
-	GCSProjectId string
-	KMSProjectId string
-	KMSLocation  string
-	KeyRingId    string
-	CryptoKeyId  string
-	GCSBucketId  string
+	GCSProjectId      string `yaml: "gcsProjectId"`
+	KMSProjectId      string `yaml: "kmsProjectId"`
+	KMSLocation       string `yaml: "kmlLocation"`
+	KeyRingId         string `yaml: "kmsKeyringId"`
+	CryptoKeyId       string `yaml: "cryptoKey"`
+	GCSBucketId       string `yaml: "gcsBucketId"`
+	RootThreshold     int    `yaml: "rootThreshold"`
+	SnapshotThreshold int    `yaml: "snapshotThreshold"`
+	TargetThreshold   int    `yaml: "targetThreshold"`
+	Targets           []string
 }
 
 const (

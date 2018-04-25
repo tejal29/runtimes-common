@@ -13,23 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package v1
+package util
 
 import (
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata"
+	"io/ioutil"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
+	yaml "gopkg.in/yaml.v2"
 )
 
-type RootMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.RootSigned
-}
-
-type SnapshotMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.SnapshotSigned
-}
-
-type TargetMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.TargetSigned
+func ReadConfig(filename string) (config.TUFConfig, error) {
+	buf, err := ioutil.ReadFile(filename)
+	tufConfig := config.TUFConfig{}
+	if err != nil {
+		return tufConfig, err
+	}
+	err = yaml.Unmarshal(buf, tufConfig)
+	return tufConfig, err
 }

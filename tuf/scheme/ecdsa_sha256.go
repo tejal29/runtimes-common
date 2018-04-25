@@ -13,23 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package v1
+package scheme
 
 import (
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata"
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 )
 
-type RootMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.RootSigned
+type ECDSA struct {
+	PrivateKey *ecdsa.PrivateKey
+	PublicKey  crypto.PublicKey
 }
 
-type SnapshotMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.SnapshotSigned
-}
-
-type TargetMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.TargetSigned
+func NewECDSA() *ECDSA {
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil
+	}
+	return &ECDSA{
+		PrivateKey: privateKey,
+		PublicKey:  privateKey.Public(),
+	}
 }

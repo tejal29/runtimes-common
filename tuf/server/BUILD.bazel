@@ -9,5 +9,7 @@ go_library(
         "//tuf/config:go_default_library",
         "//tuf/gcsLib:go_default_library",
         "//tuf/kmsLib:go_default_library",
+        "//tuf/metadata/v1:go_default_library",
+        "//vendor/cloud.google.com/go/storage:go_default_library",
     ],
 )

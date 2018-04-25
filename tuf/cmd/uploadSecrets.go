@@ -18,8 +18,8 @@ package cmd
 
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/server"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/util"
 
 	"github.com/spf13/cobra"
 )
@@ -39,15 +39,11 @@ var UploadSecretsCommand = &ctc_lib.ContainerToolCommand{
 		DefaultTemplate: "{{.}}",
 	},
 	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
-		config := config.TUFConfig{
-			GCSProjectId: GCSProjectId,
-			GCSBucketId:  GCSBucketId,
-			KMSProjectId: KMSProjectId,
-			KeyRingId:    KeyRingId,
-			KMSLocation:  KMSLocation,
-			CryptoKeyId:  KeyId,
+		tufConfig, err := util.ReadConfig(tufConfigFilename)
+		if err != nil {
+			return nil, err
 		}
-		server.UpdateSecrets(config, rootKey, targetKey, snapshotKey)
+		server.UpdateSecrets(tufConfig, rootKey, targetKey, snapshotKey)
 		return nil, nil
 	},
 }
@@ -56,5 +52,4 @@ func init() {
 	RootCommand.PersistentFlags().StringVar(&rootKey, "root-key", "", "GCloud key.json for Root role")
 	RootCommand.PersistentFlags().StringVar(&targetKey, "target-key", "", "GCloud key.json for Snapshot role")
 	RootCommand.PersistentFlags().StringVar(&snapshotKey, "snapshot-key", "", "GCloud key.json for Target role")
-
 }

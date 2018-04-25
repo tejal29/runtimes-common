@@ -13,23 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package v1
+package scheme
 
 import (
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata"
+	"crypto"
+	"io"
+	"math/big"
 )
 
-type RootMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.RootSigned
-}
-
-type SnapshotMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.SnapshotSigned
-}
-
-type TargetMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.TargetSigned
+type Scheme interface {
+	Sign(rand io.Reader, priv *crypto.PrivateKey, hash []byte) (r, s *big.Int, err error)
+	Verify(pub *crypto.PublicKey, hash []byte, r, s *big.Int) bool
 }
